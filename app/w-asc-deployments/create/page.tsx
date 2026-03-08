@@ -180,9 +180,13 @@ export default function CreateWAscDeploymentPage() {
 										<Label htmlFor='deployment_month'>Month *</Label>
 										<Select
 											value={formData.deployment_month.toString()}
-											onValueChange={(value) => setFormData({ ...formData, deployment_month: parseInt(value) })}>
+											onValueChange={(value) => value && setFormData({ ...formData, deployment_month: parseInt(value) })}>
 											<SelectTrigger>
-												<SelectValue />
+												<SelectValue>
+													{formData.deployment_month
+														? new Date(2000, formData.deployment_month - 1).toLocaleString("en", { month: "long" })
+														: "Select month"}
+												</SelectValue>
 											</SelectTrigger>
 											<SelectContent>
 												{Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (

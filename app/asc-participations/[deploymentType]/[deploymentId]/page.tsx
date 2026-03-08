@@ -16,11 +16,11 @@ import {
 	AlertDialogTitle,
 	AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { ArrowLeft, Plus, Edit, Trash2, Loader2, AlertCircle, Users, Calendar, User, FileText } from "lucide-react";
+import { ArrowLeft, Plus, Edit, Trash2, Loader2, AlertCircle, Users, Calendar, User } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { polDeploymentsApi } from "@/lib/api/pol-deployments";
-import { wAscDeploymentsApi } from "@/lib/api/w-asc-deployments";
+import { WAscDeploymentsApi } from "@/lib/api/w-asc-deployments";
 import { ascParticipationsApi } from "@/lib/api/asc-participations";
 import { toast } from "sonner";
 import type { DeploymentType } from "@/types";
@@ -39,12 +39,12 @@ export default function DeploymentParticipationsPage() {
 		isLoading: deploymentLoading,
 		error: deploymentError,
 	} = useQuery({
-		queryKey: [deploymentType === "pol" ? "pol-deployment" : "w-asc-deployment", deploymentId],
+		queryKey: [deploymentType === "pol-deployment" ? "pol-deployment" : "w-asc-deployment", deploymentId],
 		queryFn: async () => {
 			const response =
-				deploymentType === "pol"
+				deploymentType === "pol-deployment"
 					? await polDeploymentsApi.getById(deploymentId)
-					: await wAscDeploymentsApi.getById(deploymentId);
+					: await WAscDeploymentsApi.getById(deploymentId);
 			return response.data;
 		},
 	});
@@ -96,7 +96,7 @@ export default function DeploymentParticipationsPage() {
 							<div>
 								<h1 className='text-3xl font-bold'>ASC Participations</h1>
 								<p className='text-muted-foreground'>
-									{deploymentType === "pol" ? "POL Deployment" : "W ASC Deployment"} #{deploymentId}
+									{deploymentType === "pol-deployment" ? "POL Deployment" : "W ASC Deployment"} #{deploymentId}
 								</p>
 							</div>
 						</div>
@@ -132,33 +132,27 @@ export default function DeploymentParticipationsPage() {
 								<div className='grid grid-cols-2 md:grid-cols-4 gap-4'>
 									<div>
 										<p className='text-sm text-muted-foreground'>Year</p>
-										<p className='font-medium'>{deployment.year}</p>
+										<p className='font-medium'>{deployment.deployment_year}</p>
 									</div>
 									<div>
 										<p className='text-sm text-muted-foreground'>Month</p>
-										<p className='font-medium'>{deployment.month}</p>
+										<p className='font-medium'>{deployment.deployment_month}</p>
 									</div>
-									{deploymentType === "pol" && "service_name" in deployment && (
+									{deploymentType === "pol-deployment" && "event_name" in deployment && (
 										<div>
-											<p className='text-sm text-muted-foreground'>Service</p>
-											<p className='font-medium'>{deployment.service_name}</p>
+											<p className='text-sm text-muted-foreground'>Event</p>
+											<p className='font-medium'>{deployment.event_name}</p>
 										</div>
 									)}
-									{deploymentType === "wasc" && "sector" in deployment && (
+									{deploymentType === "w-asc-deployment" && "sector" in deployment && (
 										<div>
 											<p className='text-sm text-muted-foreground'>Sector</p>
 											<p className='font-medium'>{deployment.sector || "N/A"}</p>
 										</div>
 									)}
 									<div>
-										<p className='text-sm text-muted-foreground'>Location</p>
-										<p className='font-medium'>{deployment.location || "N/A"}</p>
-									</div>
-									<div>
-										<p className='text-sm text-muted-foreground'>Status</p>
-										<Badge variant={deployment.is_completed ? "default" : "secondary"}>
-											{deployment.is_completed ? "Completed" : "Ongoing"}
-										</Badge>
+										<p className='text-sm text-muted-foreground'>Venue</p>
+										<p className='font-medium'>{deployment.exact_venue || "N/A"}</p>
 									</div>
 								</div>
 							</CardContent>
@@ -245,7 +239,7 @@ export default function DeploymentParticipationsPage() {
 																<Edit className='h-4 w-4' />
 															</Button>
 															<AlertDialog>
-																<AlertDialogTrigger asChild>
+																<AlertDialogTrigger>
 																	<Button size='sm' variant='outline'>
 																		<Trash2 className='h-4 w-4 text-destructive' />
 																	</Button>

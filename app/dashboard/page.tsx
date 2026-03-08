@@ -50,8 +50,8 @@ export default function DashboardPage() {
 			<div className='space-y-6'>
 				{/* Header */}
 				<div>
-					<h1 className='text-3xl font-bold'>Welcome back, {user?.name}!</h1>
-					<p className='text-muted-foreground'>Here&apos;s an overview of your ASC management system</p>
+					<h1 className='text-2xl sm:text-3xl font-bold'>Welcome back, {user?.name}!</h1>
+					<p className='text-sm text-muted-foreground'>Here&apos;s an overview of your ASC management system</p>
 				</div>
 
 				{/* Quick Stats Grid */}

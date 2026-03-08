@@ -90,17 +90,15 @@ export default function AdminManagementPage() {
 		<AuthenticatedLayout>
 			<div className='space-y-6'>
 				{/* Header */}
-				<div className='flex items-center justify-between'>
-					<div>
-						<div className='flex items-center gap-2'>
-							<Settings className='h-8 w-8' />
-							<div>
-								<h1 className='text-3xl font-bold'>Admin Management</h1>
-								<p className='text-muted-foreground'>Manage system administrators</p>
-							</div>
+				<div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
+					<div className='flex items-center gap-2'>
+						<Settings className='h-6 w-6 sm:h-8 sm:w-8' />
+						<div>
+							<h1 className='text-2xl sm:text-3xl font-bold'>Admin Management</h1>
+							<p className='text-muted-foreground text-sm'>Manage system administrators</p>
 						</div>
 					</div>
-					<Button onClick={() => router.push("/admin-management/create")}>
+					<Button onClick={() => router.push("/admin-management/create")} className='w-full sm:w-auto'>
 						<Plus className='mr-2 h-4 w-4' />
 						Add Admin
 					</Button>
@@ -140,73 +138,137 @@ export default function AdminManagementPage() {
 
 						{!isLoading && !error && adminsData && adminsData.data && adminsData.data.length > 0 && (
 							<div className='space-y-4'>
-								<Table>
-									<TableHeader>
-										<TableRow>
-											<TableHead>ID</TableHead>
-											<TableHead>Name</TableHead>
-											<TableHead>Email</TableHead>
-											<TableHead>Role</TableHead>
-											<TableHead>Created</TableHead>
-											<TableHead className='text-right'>Actions</TableHead>
-										</TableRow>
-									</TableHeader>
-									<TableBody>
-										{adminsData.data.map((admin) => (
-											<TableRow key={admin.id}>
-												<TableCell className='font-medium'>{admin.id}</TableCell>
-												<TableCell>
-													<div className='flex items-center gap-2'>
-														<UserIcon className='h-4 w-4 text-muted-foreground' />
-														{admin.name}
+								{/* Mobile: Card View */}
+								<div className='block md:hidden space-y-3'>
+									{adminsData.data.map((admin) => (
+										<Card key={admin.id} className='p-4'>
+											<div className='space-y-3'>
+												<div className='flex items-start justify-between gap-3'>
+													<div className='space-y-1 flex-1 min-w-0'>
+														<div className='flex items-center gap-2 min-w-0'>
+															<UserIcon className='h-4 w-4 text-muted-foreground shrink-0' />
+															<span className='font-semibold truncate'>{admin.name}</span>
+														</div>
+														<div className='flex items-center gap-2 text-sm text-muted-foreground min-w-0'>
+															<Mail className='h-3 w-3 shrink-0' />
+															<span className='truncate'>{admin.email}</span>
+														</div>
+														<div className='text-xs text-muted-foreground'>Created: {new Date(admin.created_at).toLocaleDateString()}</div>
 													</div>
-												</TableCell>
-												<TableCell>
-													<div className='flex items-center gap-2'>
-														<Mail className='h-4 w-4 text-muted-foreground' />
-														{admin.email}
-													</div>
-												</TableCell>
-												<TableCell>
-													<Badge variant={admin.role === "superadmin" ? "default" : "secondary"}>
+													<Badge variant={admin.role === "superadmin" ? "default" : "secondary"} className='shrink-0'>
 														<Shield className='h-3 w-3 mr-1' />
 														{admin.role === "superadmin" ? "Superadmin" : "POL Admin"}
 													</Badge>
-												</TableCell>
-												<TableCell className='text-sm text-muted-foreground'>{new Date(admin.created_at).toLocaleDateString()}</TableCell>
-												<TableCell className='text-right'>
-													<div className='flex items-center justify-end gap-2'>
-														<Button size='sm' variant='outline' onClick={() => router.push(`/admin-management/${admin.id}/edit`)}>
-															<Edit className='h-4 w-4' />
-														</Button>
-														<AlertDialog>
-															<AlertDialogTrigger className='p-2 rounded-md hover:bg-destructive/10'>
-																<Trash2 className='h-4 w-4 text-destructive' />
-															</AlertDialogTrigger>
-															<AlertDialogContent>
-																<AlertDialogHeader>
-																	<AlertDialogTitle>Delete Administrator</AlertDialogTitle>
-																	<AlertDialogDescription>
-																		Are you sure you want to delete <strong>{admin.name}</strong>? This action cannot be undone and will revoke their access
-																		to the system.
-																	</AlertDialogDescription>
-																</AlertDialogHeader>
-																<AlertDialogFooter>
-																	<AlertDialogCancel>Cancel</AlertDialogCancel>
-																	<AlertDialogAction
-																		onClick={() => handleDelete(admin.id)}
-																		className='bg-destructive text-destructive-foreground hover:bg-destructive/90'>
-																		Delete
-																	</AlertDialogAction>
-																</AlertDialogFooter>
-															</AlertDialogContent>
-														</AlertDialog>
-													</div>
-												</TableCell>
+												</div>
+												<div className='flex gap-2 pt-2 border-t'>
+													<Button
+														size='sm'
+														variant='outline'
+														className='flex-1'
+														onClick={() => router.push(`/admin-management/${admin.id}/edit`)}>
+														<Edit className='mr-2 h-4 w-4' />
+														Edit
+													</Button>
+													<AlertDialog>
+														<AlertDialogTrigger>
+															<Button size='sm' variant='outline' className='flex-1'>
+																<Trash2 className='mr-2 h-4 w-4 text-destructive' />
+																Delete
+															</Button>
+														</AlertDialogTrigger>
+														<AlertDialogContent>
+															<AlertDialogHeader>
+																<AlertDialogTitle>Delete Administrator</AlertDialogTitle>
+																<AlertDialogDescription>
+																	Are you sure you want to delete <strong>{admin.name}</strong>? This action cannot be undone.
+																</AlertDialogDescription>
+															</AlertDialogHeader>
+															<AlertDialogFooter>
+																<AlertDialogCancel>Cancel</AlertDialogCancel>
+																<AlertDialogAction
+																	onClick={() => handleDelete(admin.id)}
+																	className='bg-destructive text-destructive-foreground hover:bg-destructive/90'>
+																	Delete
+																</AlertDialogAction>
+															</AlertDialogFooter>
+														</AlertDialogContent>
+													</AlertDialog>
+												</div>
+											</div>
+										</Card>
+									))}
+								</div>
+
+								{/* Desktop: Table View */}
+								<div className='hidden md:block overflow-x-auto'>
+									<Table>
+										<TableHeader>
+											<TableRow>
+												<TableHead>ID</TableHead>
+												<TableHead>Name</TableHead>
+												<TableHead>Email</TableHead>
+												<TableHead>Role</TableHead>
+												<TableHead>Created</TableHead>
+												<TableHead className='text-right'>Actions</TableHead>
 											</TableRow>
-										))}
-									</TableBody>
-								</Table>
+										</TableHeader>
+										<TableBody>
+											{adminsData.data.map((admin) => (
+												<TableRow key={admin.id}>
+													<TableCell className='font-medium'>{admin.id}</TableCell>
+													<TableCell>
+														<div className='flex items-center gap-2'>
+															<UserIcon className='h-4 w-4 text-muted-foreground' />
+															{admin.name}
+														</div>
+													</TableCell>
+													<TableCell>
+														<div className='flex items-center gap-2'>
+															<Mail className='h-4 w-4 text-muted-foreground' />
+															{admin.email}
+														</div>
+													</TableCell>
+													<TableCell>
+														<Badge variant={admin.role === "superadmin" ? "default" : "secondary"}>
+															<Shield className='h-3 w-3 mr-1' />
+															{admin.role === "superadmin" ? "Superadmin" : "POL Admin"}
+														</Badge>
+													</TableCell>
+													<TableCell className='text-sm text-muted-foreground'>{new Date(admin.created_at).toLocaleDateString()}</TableCell>
+													<TableCell className='text-right'>
+														<div className='flex items-center justify-end gap-2'>
+															<Button size='sm' variant='outline' onClick={() => router.push(`/admin-management/${admin.id}/edit`)}>
+																<Edit className='h-4 w-4' />
+															</Button>
+															<AlertDialog>
+																<AlertDialogTrigger className='p-2 rounded-md hover:bg-destructive/10'>
+																	<Trash2 className='h-4 w-4 text-destructive' />
+																</AlertDialogTrigger>
+																<AlertDialogContent>
+																	<AlertDialogHeader>
+																		<AlertDialogTitle>Delete Administrator</AlertDialogTitle>
+																		<AlertDialogDescription>
+																			Are you sure you want to delete <strong>{admin.name}</strong>? This action cannot be undone and will revoke their access
+																			to the system.
+																		</AlertDialogDescription>
+																	</AlertDialogHeader>
+																	<AlertDialogFooter>
+																		<AlertDialogCancel>Cancel</AlertDialogCancel>
+																		<AlertDialogAction
+																			onClick={() => handleDelete(admin.id)}
+																			className='bg-destructive text-destructive-foreground hover:bg-destructive/90'>
+																			Delete
+																		</AlertDialogAction>
+																	</AlertDialogFooter>
+																</AlertDialogContent>
+															</AlertDialog>
+														</div>
+													</TableCell>
+												</TableRow>
+											))}
+										</TableBody>
+									</Table>
+								</div>
 
 								{adminsData.meta && (
 									<p className='text-sm text-muted-foreground text-center'>

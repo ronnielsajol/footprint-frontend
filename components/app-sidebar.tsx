@@ -54,7 +54,12 @@ const navItems: NavItem[] = [
 	},
 ];
 
-export function AppSidebar() {
+interface AppSidebarProps {
+	mobile?: boolean;
+	onNavigate?: () => void;
+}
+
+export function AppSidebar({ mobile, onNavigate }: AppSidebarProps = {}) {
 	const pathname = usePathname();
 	const { user, logout } = useAuth();
 
@@ -63,36 +68,50 @@ export function AppSidebar() {
 		return user && item.allowedRoles.includes(user.role);
 	});
 
+	const handleNavClick = () => {
+		if (mobile && onNavigate) {
+			onNavigate();
+		}
+	};
+
+	const NavContent = (
+		<div className='space-y-1'>
+			{filteredNavItems.map((item) => {
+				const Icon = item.icon;
+				const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+
+				return (
+					<Link key={item.href} href={item.href} onClick={handleNavClick}>
+						<Button
+							variant={isActive ? "secondary" : "ghost"}
+							className={cn("w-full justify-start gap-3", {
+								"bg-secondary": isActive,
+							})}>
+							<Icon className='h-4 w-4' />
+							<span>{item.title}</span>
+						</Button>
+					</Link>
+				);
+			})}
+		</div>
+	);
+
 	return (
-		<div className='flex h-full w-64 flex-col border-r bg-background'>
+		<div className='flex h-full w-full sm:w-64 flex-col border-r bg-background pt-8 sm:pt-0'>
 			{/* Header */}
-			<div className='border-b p-6'>
-				<h2 className='text-xl font-bold'>Footprint</h2>
-				<p className='text-sm text-muted-foreground'>ASC Management</p>
-			</div>
+			{!mobile && (
+				<div className='border-b p-6'>
+					<h2 className='text-xl font-bold'>Footprint</h2>
+					<p className='text-sm text-muted-foreground'>ASC Management</p>
+				</div>
+			)}
 
 			{/* Navigation */}
-			<ScrollArea className='flex-1 px-3 py-4'>
-				<div className='space-y-1'>
-					{filteredNavItems.map((item) => {
-						const Icon = item.icon;
-						const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
-
-						return (
-							<Link key={item.href} href={item.href}>
-								<Button
-									variant={isActive ? "secondary" : "ghost"}
-									className={cn("w-full justify-start gap-3", {
-										"bg-secondary": isActive,
-									})}>
-									<Icon className='h-4 w-4' />
-									<span>{item.title}</span>
-								</Button>
-							</Link>
-						);
-					})}
-				</div>
-			</ScrollArea>
+			{mobile ? (
+				<div className='flex-1 px-3 py-4'>{NavContent}</div>
+			) : (
+				<ScrollArea className='flex-1 px-3 py-4'>{NavContent}</ScrollArea>
+			)}
 
 			{/* User Info & Logout */}
 			<div className='border-t p-4'>

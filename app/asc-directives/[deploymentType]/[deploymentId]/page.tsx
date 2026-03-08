@@ -136,7 +136,7 @@ export default function DeploymentDirectivesPage() {
 									</div>
 									<div>
 										<p className='text-sm text-muted-foreground'>Month</p>
-										<p className='font-medium'>{deployment.deployment_month}</p>
+										<p className='font-medium'>{new Date(2000, deployment.deployment_month - 1).toLocaleString("en", { month: "long" })}</p>
 									</div>
 									{deploymentType === "pol-deployment" && "source" in deployment && deployment.source && (
 										<div>

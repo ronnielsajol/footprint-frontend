@@ -13,7 +13,7 @@ import { ArrowLeft, Save } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { polDeploymentsApi } from "@/lib/api/pol-deployments";
-import { CreatePolDeploymentPayload } from "@/types";
+import { CreatePolDeploymentPayload, SourceType } from "@/types";
 
 export default function CreatePolDeploymentPage() {
 	const router = useRouter();
@@ -37,8 +37,9 @@ export default function CreatePolDeploymentPage() {
 			} else {
 				toast.error(response.message);
 			}
-		} catch (error: any) {
-			toast.error(error.message || "Failed to create deployment");
+		} catch (error: unknown) {
+			const message = error instanceof Error ? error.message : "Failed to create deployment";
+			toast.error(message);
 		} finally {
 			setIsSubmitting(false);
 		}
@@ -143,9 +144,13 @@ export default function CreatePolDeploymentPage() {
 										<Label htmlFor='deployment_month'>Month *</Label>
 										<Select
 											value={formData.deployment_month.toString()}
-											onValueChange={(value) => setFormData({ ...formData, deployment_month: parseInt(value) })}>
+											onValueChange={(value) => value && setFormData({ ...formData, deployment_month: parseInt(value) })}>
 											<SelectTrigger>
-												<SelectValue />
+												<SelectValue>
+													{formData.deployment_month
+														? new Date(2000, formData.deployment_month - 1).toLocaleString("en", { month: "long" })
+														: "Select month"}
+												</SelectValue>
 											</SelectTrigger>
 											<SelectContent>
 												{Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
@@ -272,7 +277,9 @@ export default function CreatePolDeploymentPage() {
 									</div>
 									<div className='space-y-2'>
 										<Label htmlFor='source'>Source</Label>
-										<Select value={formData.source || ""} onValueChange={(value) => setFormData({ ...formData, source: value as any })}>
+										<Select
+											value={formData.source || ""}
+											onValueChange={(value) => setFormData({ ...formData, source: value as SourceType })}>
 											<SelectTrigger>
 												<SelectValue placeholder='Select source' />
 											</SelectTrigger>

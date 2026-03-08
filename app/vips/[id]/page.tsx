@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery, useMutation, useQueryClient } from "@tantml:react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
 import { AuthenticatedLayout } from "@/components/authenticated-layout";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Edit, Trash2, Loader2, User, Phone, Mail, Calendar } from "lucide-react";
 import Link from "next/link";
-import { VipsApi } from "@/lib/api/vips";
+import { vipsApi } from "@/lib/api/vips";
 import { toast } from "sonner";
 import {
 	AlertDialog,
@@ -30,12 +30,12 @@ export default function VipDetailPage() {
 
 	const { data, isLoading, error } = useQuery({
 		queryKey: ["vip", id],
-		queryFn: () => VipsApi.getById(id),
+		queryFn: () => vipsApi.getById(id),
 		enabled: !isNaN(id),
 	});
 
 	const deleteMutation = useMutation({
-		mutationFn: () => VipsApi.delete(id),
+		mutationFn: () => vipsApi.delete(id),
 		onSuccess: () => {
 			toast.success("VIP deleted successfully");
 			queryClient.invalidateQueries({ queryKey: ["vips"] });
@@ -83,7 +83,7 @@ export default function VipDetailPage() {
 		<AuthenticatedLayout>
 			<div className='space-y-6'>
 				{/* Header */}
-				<div className='flex items-center justify-between'>
+				<div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
 					<div className='flex items-center gap-4'>
 						<Link href='/vips'>
 							<Button variant='ghost' size='icon'>
@@ -91,20 +91,20 @@ export default function VipDetailPage() {
 							</Button>
 						</Link>
 						<div>
-							<h1 className='text-3xl font-bold'>{vip.full_name}</h1>
+							<h1 className='text-2xl sm:text-3xl font-bold'>{vip.full_name}</h1>
 							<p className='text-muted-foreground'>VIP Details</p>
 						</div>
 					</div>
 					<div className='flex gap-2'>
 						<Link href={`/vips/${id}/edit`}>
-							<Button>
+							<Button className='flex-1 sm:flex-none'>
 								<Edit className='mr-2 h-4 w-4' />
 								Edit
 							</Button>
 						</Link>
 						<AlertDialog>
-							<AlertDialogTrigger asChild>
-								<Button variant='destructive'>
+							<AlertDialogTrigger>
+								<Button variant='outline' className='flex-1 sm:flex-none'>
 									<Trash2 className='mr-2 h-4 w-4' />
 									Delete
 								</Button>
@@ -118,7 +118,7 @@ export default function VipDetailPage() {
 								</AlertDialogHeader>
 								<AlertDialogFooter>
 									<AlertDialogCancel>Cancel</AlertDialogCancel>
-									<AlertDialogAction onClick={() => deleteMutation.mutate()} className='bg-destructive text-destructive-foreground'>
+									<AlertDialogAction onClick={() => deleteMutation.mutate()} className='bg-destructive text-white hover:bg-red-800'>
 										{deleteMutation.isPending ? <Loader2 className='h-4 w-4 animate-spin' /> : "Delete"}
 									</AlertDialogAction>
 								</AlertDialogFooter>

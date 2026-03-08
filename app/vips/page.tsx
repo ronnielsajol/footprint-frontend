@@ -91,67 +91,115 @@ export default function VipsPage() {
 
 						{!isLoading && !error && data && data.data && data.data.length > 0 && (
 							<div className='space-y-4'>
-								<Table>
-									<TableHeader>
-										<TableRow>
-											<TableHead>ID</TableHead>
-											<TableHead>Full Name</TableHead>
-											<TableHead>Contact Number</TableHead>
-											<TableHead>Email</TableHead>
-											<TableHead>Birth Date</TableHead>
-											<TableHead>Events</TableHead>
-											<TableHead className='text-right'>Actions</TableHead>
-										</TableRow>
-									</TableHeader>
-									<TableBody>
-										{data.data.map((vip) => (
-											<TableRow key={vip.id}>
-												<TableCell className='font-medium'>{vip.id}</TableCell>
-												<TableCell>
-													<div className='flex items-center gap-2'>
-														<User className='h-4 w-4 text-muted-foreground' />
-														<span className='font-medium'>{vip.full_name}</span>
-													</div>
-												</TableCell>
-												<TableCell>
-													<div className='flex items-center gap-2'>
-														<Phone className='h-4 w-4 text-muted-foreground' />
-														<span>{vip.contact_number}</span>
-													</div>
-												</TableCell>
-												<TableCell>
-													{vip.email ? (
+								{/* Mobile: Card View */}
+								<div className='block md:hidden space-y-3'>
+									{data.data.map((vip) => (
+										<Card key={vip.id} className='p-4'>
+											<div className='space-y-3'>
+												<div className='flex items-start justify-between gap-3'>
+													<div className='space-y-1 flex-1 min-w-0'>
 														<div className='flex items-center gap-2'>
-															<Mail className='h-4 w-4 text-muted-foreground' />
-															<span className='max-w-xs truncate'>{vip.email}</span>
+															<User className='h-4 w-4 text-muted-foreground shrink-0' />
+															<span className='font-semibold truncate'>{vip.full_name}</span>
 														</div>
-													) : (
-														<span className='text-muted-foreground'>N/A</span>
-													)}
-												</TableCell>
-												<TableCell>
-													<div className='flex items-center gap-2'>
-														<Calendar className='h-4 w-4 text-muted-foreground' />
-														<span>{new Date(vip.birth_date).toLocaleDateString()}</span>
+														<div className='flex items-center gap-2 text-sm text-muted-foreground'>
+															<Phone className='h-3 w-3 shrink-0' />
+															<span>{vip.contact_number}</span>
+														</div>
+														{vip.email && (
+															<div className='flex items-center gap-2 text-sm text-muted-foreground min-w-0'>
+																<Mail className='h-3 w-3 shrink-0' />
+																<span className='truncate'>{vip.email}</span>
+															</div>
+														)}
+														<div className='flex items-center gap-2 text-sm text-muted-foreground'>
+															<Calendar className='h-3 w-3 shrink-0' />
+															<span>{new Date(vip.birth_date).toLocaleDateString()}</span>
+														</div>
 													</div>
-												</TableCell>
-												<TableCell>
-													<Badge variant='secondary'>{vip.events_count ?? 0} events</Badge>
-												</TableCell>
-												<TableCell className='text-right'>
-													<div className='flex items-center justify-end gap-2'>
-														<Button size='sm' variant='ghost' onClick={() => router.push(`/vips/${vip.id}`)}>
-															<Eye className='h-4 w-4' />
-														</Button>
-														<Button size='sm' variant='ghost' onClick={() => router.push(`/vips/${vip.id}/edit`)}>
-															<Edit className='h-4 w-4' />
-														</Button>
-													</div>
-												</TableCell>
+													<Badge variant='secondary' className='shrink-0'>
+														{vip.events_count ?? 0} events
+													</Badge>
+												</div>
+												<div className='flex gap-2 pt-2 border-t'>
+													<Button size='sm' variant='outline' className='flex-1' onClick={() => router.push(`/vips/${vip.id}`)}>
+														<Eye className='mr-2 h-4 w-4' />
+														View
+													</Button>
+													<Button size='sm' variant='outline' className='flex-1' onClick={() => router.push(`/vips/${vip.id}/edit`)}>
+														<Edit className='mr-2 h-4 w-4' />
+														Edit
+													</Button>
+												</div>
+											</div>
+										</Card>
+									))}
+								</div>
+
+								{/* Desktop: Table View */}
+								<div className='hidden md:block overflow-x-auto'>
+									<Table>
+										<TableHeader>
+											<TableRow>
+												<TableHead>ID</TableHead>
+												<TableHead>Full Name</TableHead>
+												<TableHead>Contact Number</TableHead>
+												<TableHead>Email</TableHead>
+												<TableHead>Birth Date</TableHead>
+												<TableHead>Events</TableHead>
+												<TableHead className='text-right'>Actions</TableHead>
 											</TableRow>
-										))}
-									</TableBody>
-								</Table>
+										</TableHeader>
+										<TableBody>
+											{data.data.map((vip) => (
+												<TableRow key={vip.id}>
+													<TableCell className='font-medium'>{vip.id}</TableCell>
+													<TableCell>
+														<div className='flex items-center gap-2'>
+															<User className='h-4 w-4 text-muted-foreground' />
+															<span className='font-medium'>{vip.full_name}</span>
+														</div>
+													</TableCell>
+													<TableCell>
+														<div className='flex items-center gap-2'>
+															<Phone className='h-4 w-4 text-muted-foreground' />
+															<span>{vip.contact_number}</span>
+														</div>
+													</TableCell>
+													<TableCell>
+														{vip.email ? (
+															<div className='flex items-center gap-2'>
+																<Mail className='h-4 w-4 text-muted-foreground' />
+																<span className='max-w-xs truncate'>{vip.email}</span>
+															</div>
+														) : (
+															<span className='text-muted-foreground'>N/A</span>
+														)}
+													</TableCell>
+													<TableCell>
+														<div className='flex items-center gap-2'>
+															<Calendar className='h-4 w-4 text-muted-foreground' />
+															<span>{new Date(vip.birth_date).toLocaleDateString()}</span>
+														</div>
+													</TableCell>
+													<TableCell>
+														<Badge variant='secondary'>{vip.events_count ?? 0} events</Badge>
+													</TableCell>
+													<TableCell className='text-right'>
+														<div className='flex items-center justify-end gap-2'>
+															<Button size='sm' variant='ghost' onClick={() => router.push(`/vips/${vip.id}`)}>
+																<Eye className='h-4 w-4' />
+															</Button>
+															<Button size='sm' variant='ghost' onClick={() => router.push(`/vips/${vip.id}/edit`)}>
+																<Edit className='h-4 w-4' />
+															</Button>
+														</div>
+													</TableCell>
+												</TableRow>
+											))}
+										</TableBody>
+									</Table>
+								</div>
 
 								{data.meta && (
 									<p className='text-sm text-muted-foreground text-center'>

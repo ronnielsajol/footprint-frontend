@@ -21,13 +21,13 @@ export default function PolDeploymentsPage() {
 		<AuthenticatedLayout>
 			<div className='space-y-6'>
 				{/* Header */}
-				<div className='flex items-center justify-between'>
+				<div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
 					<div>
-						<h1 className='text-3xl font-bold'>POL Deployments</h1>
+						<h1 className='text-2xl sm:text-3xl font-bold'>POL Deployments</h1>
 						<p className='text-muted-foreground'>Manage POL deployment records</p>
 					</div>
 					<Link href='/pol-deployments/create'>
-						<Button>
+						<Button className='w-full sm:w-auto'>
 							<Plus className='mr-2 h-4 w-4' />
 							New Deployment
 						</Button>
@@ -83,7 +83,9 @@ export default function PolDeploymentsPage() {
 										setFilters({ ...filters, month: value === "all" ? undefined : parseInt(value) });
 									}}>
 									<SelectTrigger>
-										<SelectValue placeholder='All months' />
+										<SelectValue>
+											{filters.month ? new Date(2000, filters.month - 1).toLocaleString("en", { month: "long" }) : "All months"}
+										</SelectValue>
 									</SelectTrigger>
 									<SelectContent>
 										<SelectItem value='all'>All months</SelectItem>
@@ -101,7 +103,7 @@ export default function PolDeploymentsPage() {
 									value={filters.source || "all"}
 									onValueChange={(value) => setFilters({ ...filters, source: value === "all" ? undefined : (value as SourceType) })}>
 									<SelectTrigger>
-										<SelectValue placeholder='All sources' />
+										<SelectValue>{filters.source || "All sources"}</SelectValue>
 									</SelectTrigger>
 									<SelectContent>
 										<SelectItem value='all'>All sources</SelectItem>
@@ -116,7 +118,12 @@ export default function PolDeploymentsPage() {
 							</div>
 						</div>
 						<div className='flex gap-2'>
-							<Button variant='outline' size='sm' onClick={() => setFilters({ per_page: 20 })}>
+							<Button
+								variant='outline'
+								size='sm'
+								onClick={() =>
+									setFilters({ per_page: 20, year: new Date().getFullYear(), month: undefined, source: undefined, search: "" })
+								}>
 								Clear Filters
 							</Button>
 						</div>

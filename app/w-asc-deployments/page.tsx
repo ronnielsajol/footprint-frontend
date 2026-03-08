@@ -35,12 +35,12 @@ export default function WAscDeploymentsPage() {
 		<AuthenticatedLayout>
 			<div className='space-y-6'>
 				{/* Header */}
-				<div className='flex items-center justify-between'>
+				<div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
 					<div>
-						<h1 className='text-3xl font-bold'>W ASC Deployments</h1>
+						<h1 className='text-2xl sm:text-3xl font-bold'>W ASC Deployments</h1>
 						<p className='text-muted-foreground'>Manage W ASC deployment activities</p>
 					</div>
-					<Button onClick={() => router.push("/w-asc-deployments/create")}>
+					<Button onClick={() => router.push("/w-asc-deployments/create")} className='w-full sm:w-auto'>
 						<Plus className='mr-2 h-4 w-4' />
 						New Deployment
 					</Button>
@@ -88,7 +88,7 @@ export default function WAscDeploymentsPage() {
 							<div className='space-y-2'>
 								<label className='text-sm font-medium'>Sector</label>
 								<Select
-									value={filters.sector || "all"}
+									value={filters.sector || "All Sectors"}
 									onValueChange={(value) => setFilters({ ...filters, sector: value === "all" ? undefined : (value as SectorType) })}>
 									<SelectTrigger>
 										<SelectValue placeholder='All sectors' />
@@ -140,49 +140,100 @@ export default function WAscDeploymentsPage() {
 
 						{!isLoading && !error && data && data.data && data.data.length > 0 && (
 							<div className='space-y-4'>
-								<Table>
-									<TableHeader>
-										<TableRow>
-											<TableHead>ID</TableHead>
-											<TableHead>Year</TableHead>
-											<TableHead>Month</TableHead>
-											<TableHead>Venue</TableHead>
-											<TableHead>Sector</TableHead>
-											<TableHead>Location</TableHead>
-											<TableHead>Date</TableHead>
-											<TableHead className='text-right'>Actions</TableHead>
-										</TableRow>
-									</TableHeader>
-									<TableBody>
-										{data.data.map((deployment: WAscDeployment) => (
-											<TableRow key={deployment.id}>
-												<TableCell className='font-medium'>{deployment.id}</TableCell>
-												<TableCell>{deployment.deployment_year}</TableCell>
-												<TableCell>{deployment.deployment_month}</TableCell>
-												<TableCell className='max-w-xs truncate'>{deployment.exact_venue}</TableCell>
-												<TableCell>
-													{deployment.sector ? (
-														<Badge variant='outline'>{deployment.sector}</Badge>
-													) : (
-														<span className='text-muted-foreground'>N/A</span>
-													)}
-												</TableCell>
-												<TableCell>{deployment.city_municipality || deployment.barangay || "N/A"}</TableCell>
-												<TableCell>{new Date(deployment.exact_date).toLocaleDateString()}</TableCell>
-												<TableCell className='text-right'>
-													<div className='flex items-center justify-end gap-2'>
-														<Button size='sm' variant='ghost' onClick={() => router.push(`/w-asc-deployments/${deployment.id}`)}>
-															<Eye className='h-4 w-4' />
-														</Button>
-														<Button size='sm' variant='ghost' onClick={() => router.push(`/w-asc-deployments/${deployment.id}/edit`)}>
-															<Edit className='h-4 w-4' />
-														</Button>
+								{/* Mobile: Card View */}
+								<div className='block md:hidden space-y-3'>
+									{data.data.map((deployment: WAscDeployment) => (
+										<Card key={deployment.id} className='p-4'>
+											<div className='space-y-3'>
+												<div className='flex items-start justify-between gap-3'>
+													<div className='space-y-1 flex-1 min-w-0'>
+														<div className='font-semibold truncate'>{deployment.exact_venue}</div>
+														<div className='text-sm text-muted-foreground truncate'>
+															{deployment.city_municipality || deployment.barangay || "N/A"}
+														</div>
+														<div className='flex gap-2 items-center text-sm'>
+															<span className='text-muted-foreground'>
+																{deployment.deployment_year}/{deployment.deployment_month}
+															</span>
+															<span>•</span>
+															<span>{new Date(deployment.exact_date).toLocaleDateString()}</span>
+														</div>
 													</div>
-												</TableCell>
+													{deployment.sector && (
+														<Badge variant='outline' className='shrink-0'>
+															{deployment.sector}
+														</Badge>
+													)}
+												</div>
+												<div className='flex gap-2 pt-2 border-t'>
+													<Button
+														size='sm'
+														variant='outline'
+														className='flex-1'
+														onClick={() => router.push(`/w-asc-deployments/${deployment.id}`)}>
+														<Eye className='mr-2 h-4 w-4' />
+														View
+													</Button>
+													<Button
+														size='sm'
+														variant='outline'
+														className='flex-1'
+														onClick={() => router.push(`/w-asc-deployments/${deployment.id}/edit`)}>
+														<Edit className='mr-2 h-4 w-4' />
+														Edit
+													</Button>
+												</div>
+											</div>
+										</Card>
+									))}
+								</div>
+
+								{/* Desktop: Table View */}
+								<div className='hidden md:block overflow-x-auto'>
+									<Table>
+										<TableHeader>
+											<TableRow>
+												<TableHead>ID</TableHead>
+												<TableHead>Year</TableHead>
+												<TableHead>Month</TableHead>
+												<TableHead>Venue</TableHead>
+												<TableHead>Sector</TableHead>
+												<TableHead>Location</TableHead>
+												<TableHead>Date</TableHead>
+												<TableHead className='text-right'>Actions</TableHead>
 											</TableRow>
-										))}
-									</TableBody>
-								</Table>
+										</TableHeader>
+										<TableBody>
+											{data.data.map((deployment: WAscDeployment) => (
+												<TableRow key={deployment.id}>
+													<TableCell className='font-medium'>{deployment.id}</TableCell>
+													<TableCell>{deployment.deployment_year}</TableCell>
+													<TableCell>{deployment.deployment_month}</TableCell>
+													<TableCell className='max-w-xs truncate'>{deployment.exact_venue}</TableCell>
+													<TableCell>
+														{deployment.sector ? (
+															<Badge variant='outline'>{deployment.sector}</Badge>
+														) : (
+															<span className='text-muted-foreground'>N/A</span>
+														)}
+													</TableCell>
+													<TableCell>{deployment.city_municipality || deployment.barangay || "N/A"}</TableCell>
+													<TableCell>{new Date(deployment.exact_date).toLocaleDateString()}</TableCell>
+													<TableCell className='text-right'>
+														<div className='flex items-center justify-end gap-2'>
+															<Button size='sm' variant='ghost' onClick={() => router.push(`/w-asc-deployments/${deployment.id}`)}>
+																<Eye className='h-4 w-4' />
+															</Button>
+															<Button size='sm' variant='ghost' onClick={() => router.push(`/w-asc-deployments/${deployment.id}/edit`)}>
+																<Edit className='h-4 w-4' />
+															</Button>
+														</div>
+													</TableCell>
+												</TableRow>
+											))}
+										</TableBody>
+									</Table>
+								</div>
 
 								{data.meta && (
 									<p className='text-sm text-muted-foreground text-center'>

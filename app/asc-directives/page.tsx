@@ -45,21 +45,23 @@ export default function AscDirectivesPage() {
 		<AuthenticatedLayout>
 			<div className='space-y-6'>
 				{/* Header */}
-				<div>
-					<div className='flex items-center gap-2'>
-						<FileCheck className='h-8 w-8' />
-						<div>
-							<h1 className='text-3xl font-bold'>ASC Directives</h1>
-							<p className='text-muted-foreground'>Manage directives for POL and W ASC deployments</p>
-						</div>
+				<div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-2'>
+					<FileCheck className='h-6 w-6 sm:h-8 sm:w-8' />
+					<div>
+						<h1 className='text-2xl sm:text-3xl font-bold'>ASC Directives</h1>
+						<p className='text-sm text-muted-foreground'>Manage directives for POL and W ASC deployments</p>
 					</div>
 				</div>
 
 				{/* Tabs for deployment types */}
 				<Tabs defaultValue='pol' className='space-y-4'>
-					<TabsList>
-						<TabsTrigger value='pol'>POL Deployments</TabsTrigger>
-						<TabsTrigger value='wasc'>W ASC Deployments</TabsTrigger>
+					<TabsList className='w-full sm:w-auto'>
+						<TabsTrigger value='pol' className='flex-1 sm:flex-none'>
+							POL Deployments
+						</TabsTrigger>
+						<TabsTrigger value='wasc' className='flex-1 sm:flex-none'>
+							W ASC Deployments
+						</TabsTrigger>
 					</TabsList>
 
 					<TabsContent value='pol' className='space-y-4'>
@@ -107,7 +109,7 @@ export default function AscDirectivesPage() {
 													<TableRow key={deployment.id}>
 														<TableCell className='font-medium'>{deployment.id}</TableCell>
 														<TableCell>{deployment.deployment_year}</TableCell>
-														<TableCell>{deployment.deployment_month}</TableCell>
+														<TableCell>{new Date(2000, deployment.deployment_month - 1).toLocaleString("en", { month: "long" })}</TableCell>
 														<TableCell>{deployment.event_name}</TableCell>
 														<TableCell>{deployment.district || "N/A"}</TableCell>
 														<TableCell className='text-right'>
@@ -177,7 +179,7 @@ export default function AscDirectivesPage() {
 													<TableRow key={deployment.id}>
 														<TableCell className='font-medium'>{deployment.id}</TableCell>
 														<TableCell>{deployment.deployment_year}</TableCell>
-														<TableCell>{deployment.deployment_month}</TableCell>
+														<TableCell>{new Date(2000, deployment.deployment_month - 1).toLocaleString("en", { month: "long" })}</TableCell>
 														<TableCell className='max-w-xs truncate'>{deployment.exact_venue}</TableCell>
 														<TableCell>{deployment.sector || "N/A"}</TableCell>
 														<TableCell className='text-right'>

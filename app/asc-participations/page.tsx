@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
-import { UsersRound, Users, Loader2, AlertCircle } from "lucide-react";
+import { UsersRound, Users, Loader2, AlertCircle, Calendar, MapPin, Building2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { polDeploymentsApi } from "@/lib/api/pol-deployments";
 import { WAscDeploymentsApi } from "@/lib/api/w-asc-deployments";
@@ -46,21 +46,23 @@ export default function AscParticipationsPage() {
 		<AuthenticatedLayout>
 			<div className='space-y-6'>
 				{/* Header */}
-				<div>
-					<div className='flex items-center gap-2'>
-						<UsersRound className='h-8 w-8' />
-						<div>
-							<h1 className='text-3xl font-bold'>ASC Participations</h1>
-							<p className='text-muted-foreground'>Track participant records for deployments</p>
-						</div>
+				<div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-2'>
+					<UsersRound className='h-6 w-6 sm:h-8 sm:w-8' />
+					<div>
+						<h1 className='text-2xl sm:text-3xl font-bold'>ASC Participations</h1>
+						<p className='text-sm text-muted-foreground'>Track participant records for deployments</p>
 					</div>
 				</div>
 
 				{/* Tabs for deployment types */}
 				<Tabs defaultValue='pol' className='space-y-4'>
-					<TabsList>
-						<TabsTrigger value='pol'>POL Deployments</TabsTrigger>
-						<TabsTrigger value='wasc'>W ASC Deployments</TabsTrigger>
+					<TabsList className='w-full sm:w-auto'>
+						<TabsTrigger value='pol' className='flex-1 sm:flex-none'>
+							POL Deployments
+						</TabsTrigger>
+						<TabsTrigger value='wasc' className='flex-1 sm:flex-none'>
+							W ASC Deployments
+						</TabsTrigger>
 					</TabsList>
 
 					<TabsContent value='pol' className='space-y-4'>
@@ -92,35 +94,67 @@ export default function AscParticipationsPage() {
 
 								{!polLoading && !polError && polData && polData.data && polData.data.length > 0 && (
 									<div className='space-y-4'>
-										<Table>
-											<TableHeader>
-												<TableRow>
-													<TableHead>ID</TableHead>
-													<TableHead>Year</TableHead>
-													<TableHead>Month</TableHead>
-													<TableHead>Event</TableHead>
-													<TableHead>District</TableHead>
-													<TableHead className='text-right'>Actions</TableHead>
-												</TableRow>
-											</TableHeader>
-											<TableBody>
-												{polData.data.map((deployment) => (
-													<TableRow key={deployment.id}>
-														<TableCell className='font-medium'>{deployment.id}</TableCell>
-														<TableCell>{deployment.deployment_year}</TableCell>
-														<TableCell>{deployment.deployment_month}</TableCell>
-														<TableCell>{deployment.event_name}</TableCell>
-														<TableCell>{deployment.district || "N/A"}</TableCell>
-														<TableCell className='text-right'>
-															<Button size='sm' variant='outline' onClick={() => router.push(`/asc-participations/pol/${deployment.id}`)}>
-																<Users className='h-4 w-4 mr-1' />
-																View Participations
-															</Button>
-														</TableCell>
+										{/* Mobile: Card View */}
+										<div className='block md:hidden space-y-3'>
+											{polData.data.map((deployment) => (
+												<Card key={deployment.id} className='p-4'>
+													<div className='space-y-3'>
+														<div className='space-y-2'>
+															<div className='font-semibold text-lg'>{deployment.event_name}</div>
+															<div className='flex items-center gap-2 text-sm text-muted-foreground'>
+																<Calendar className='h-3 w-3 shrink-0' />
+																<span>
+																	{deployment.deployment_month} {deployment.deployment_year}
+																</span>
+															</div>
+															<div className='flex items-center gap-2 text-sm text-muted-foreground'>
+																<MapPin className='h-3 w-3 shrink-0' />
+																<span>{deployment.district || "N/A"}</span>
+															</div>
+														</div>
+														<Button
+															size='sm'
+															variant='outline'
+															className='w-full'
+															onClick={() => router.push(`/asc-participations/pol-deployment/${deployment.id}`)}>
+															<Users className='h-4 w-4 mr-2' />
+															View Participations
+														</Button>
+													</div>
+												</Card>
+											))}
+										</div>
+
+										{/* Desktop: Table View */}
+										<div className='hidden md:block overflow-x-auto'>
+											<Table>
+												<TableHeader>
+													<TableRow>
+														<TableHead>Year</TableHead>
+														<TableHead>Month</TableHead>
+														<TableHead>Event</TableHead>
+														<TableHead>District</TableHead>
+														<TableHead className='text-right'>Actions</TableHead>
 													</TableRow>
-												))}
-											</TableBody>
-										</Table>
+												</TableHeader>
+												<TableBody>
+													{polData.data.map((deployment) => (
+														<TableRow key={deployment.id}>
+															<TableCell>{deployment.deployment_year}</TableCell>
+															<TableCell>{deployment.deployment_month}</TableCell>
+															<TableCell>{deployment.event_name}</TableCell>
+															<TableCell>{deployment.district || "N/A"}</TableCell>
+															<TableCell className='text-right'>
+																<Button size='sm' variant='outline' onClick={() => router.push(`/asc-participations/pol-deployment/${deployment.id}`)}>
+																	<Users className='h-4 w-4 mr-1' />
+																	View Participations
+																</Button>
+															</TableCell>
+														</TableRow>
+													))}
+												</TableBody>
+											</Table>
+										</div>
 
 										{polData.meta && (
 											<p className='text-sm text-muted-foreground text-center'>
@@ -162,35 +196,72 @@ export default function AscParticipationsPage() {
 
 								{!wascLoading && !wascError && wascData && wascData.data && wascData.data.length > 0 && (
 									<div className='space-y-4'>
-										<Table>
-											<TableHeader>
-												<TableRow>
-													<TableHead>ID</TableHead>
-													<TableHead>Year</TableHead>
-													<TableHead>Month</TableHead>
-													<TableHead>Venue</TableHead>
-													<TableHead>Sector</TableHead>
-													<TableHead className='text-right'>Actions</TableHead>
-												</TableRow>
-											</TableHeader>
-											<TableBody>
-												{wascData.data.map((deployment: WAscDeployment) => (
-													<TableRow key={deployment.id}>
-														<TableCell className='font-medium'>{deployment.id}</TableCell>
-														<TableCell>{deployment.deployment_year}</TableCell>
-														<TableCell>{deployment.deployment_month}</TableCell>
-														<TableCell className='max-w-xs truncate'>{deployment.exact_venue}</TableCell>
-														<TableCell>{deployment.sector || "N/A"}</TableCell>
-														<TableCell className='text-right'>
-															<Button size='sm' variant='outline' onClick={() => router.push(`/asc-participations/wasc/${deployment.id}`)}>
-																<Users className='h-4 w-4 mr-1' />
-																View Participations
-															</Button>
-														</TableCell>
+										{/* Mobile: Card View */}
+										<div className='block md:hidden space-y-3'>
+											{wascData.data.map((deployment: WAscDeployment) => (
+												<Card key={deployment.id} className='p-4'>
+													<div className='space-y-3'>
+														<div className='space-y-2'>
+															<div className='font-semibold text-lg'>{deployment.exact_venue}</div>
+															<div className='flex items-center gap-2 text-sm text-muted-foreground'>
+																<Calendar className='h-3 w-3 shrink-0' />
+																<span>
+																	{deployment.deployment_month} {deployment.deployment_year}
+																</span>
+															</div>
+															<div className='flex items-center gap-2 text-sm text-muted-foreground'>
+																<Building2 className='h-3 w-3 shrink-0' />
+																<span>{deployment.sector || "N/A"}</span>
+															</div>
+														</div>
+														<Button
+															size='sm'
+															variant='outline'
+															className='w-full'
+															onClick={() => router.push(`/asc-participations/w-asc-deployment/${deployment.id}`)}>
+															<Users className='h-4 w-4 mr-2' />
+															View Participations
+														</Button>
+													</div>
+												</Card>
+											))}
+										</div>
+
+										{/* Desktop: Table View */}
+										<div className='hidden md:block overflow-x-auto'>
+											<Table>
+												<TableHeader>
+													<TableRow>
+														<TableHead>ID</TableHead>
+														<TableHead>Year</TableHead>
+														<TableHead>Month</TableHead>
+														<TableHead>Venue</TableHead>
+														<TableHead>Sector</TableHead>
+														<TableHead className='text-right'>Actions</TableHead>
 													</TableRow>
-												))}
-											</TableBody>
-										</Table>
+												</TableHeader>
+												<TableBody>
+													{wascData.data.map((deployment: WAscDeployment) => (
+														<TableRow key={deployment.id}>
+															<TableCell className='font-medium'>{deployment.id}</TableCell>
+															<TableCell>{deployment.deployment_year}</TableCell>
+															<TableCell>{deployment.deployment_month}</TableCell>
+															<TableCell className='max-w-xs truncate'>{deployment.exact_venue}</TableCell>
+															<TableCell>{deployment.sector || "N/A"}</TableCell>
+															<TableCell className='text-right'>
+																<Button
+																	size='sm'
+																	variant='outline'
+																	onClick={() => router.push(`/asc-participations/w-asc-deployment/${deployment.id}`)}>
+																	<Users className='h-4 w-4 mr-1' />
+																	View Participations
+																</Button>
+															</TableCell>
+														</TableRow>
+													))}
+												</TableBody>
+											</Table>
+										</div>
 
 										{wascData.meta && (
 											<p className='text-sm text-muted-foreground text-center'>
