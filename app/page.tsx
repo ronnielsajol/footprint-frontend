@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
-import { Spinner } from "@/components/ui/spinner";
+import { Loader2 } from "lucide-react";
 
 export default function Page() {
 	const { user, isLoading } = useAuth();
@@ -21,7 +21,7 @@ export default function Page() {
 
 	return (
 		<div className='flex min-h-screen items-center justify-center'>
-			<Spinner size='lg' />
+			<Loader2 className='h-8 w-8 animate-spin text-muted-foreground' />
 		</div>
 	);
 }
