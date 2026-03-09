@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, QueryClient } from "@tanstack/react-query";
 import { AuthenticatedLayout } from "@/components/authenticated-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,7 +15,8 @@ import { ArrowLeft, Save, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { WAscDeploymentsApi } from "@/lib/api/w-asc-deployments";
-import { UpdateWAscDeploymentPayload, SectorType } from "@/types";
+import { UpdateWAscDeploymentPayload, SectorType, WAscDeployment } from "@/types";
+import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 
 export default function EditWAscDeploymentPage() {
 	const params = useParams();
@@ -23,87 +24,11 @@ export default function EditWAscDeploymentPage() {
 	const queryClient = useQueryClient();
 	const id = parseInt(params.id as string);
 
-	const [formData, setFormData] = useState<UpdateWAscDeploymentPayload>({
-		exact_venue: "",
-		deployment_month: new Date().getMonth() + 1,
-		deployment_year: new Date().getFullYear(),
-		exact_date: new Date().toISOString().split("T")[0],
-		has_socials: false,
-		has_sortie: false,
-		asc_attended: false,
-		llc_attended: false,
-		psc_attended: false,
-		pol_activities: [],
-	});
-
-	const [polActivityInput, setPolActivityInput] = useState("");
-
 	const { data, isLoading, error } = useQuery({
 		queryKey: ["w-asc-deployment", id],
 		queryFn: () => WAscDeploymentsApi.getById(id),
 		enabled: !isNaN(id),
 	});
-
-	const updateMutation = useMutation({
-		mutationFn: (payload: UpdateWAscDeploymentPayload) => WAscDeploymentsApi.update(id, payload),
-		onSuccess: () => {
-			toast.success("W ASC Deployment updated successfully");
-			queryClient.invalidateQueries({ queryKey: ["w-asc-deployment", id] });
-			queryClient.invalidateQueries({ queryKey: ["w-asc-deployments"] });
-			router.push(`/w-asc-deployments/${id}`);
-		},
-		onError: () => {
-			toast.error("Failed to update W ASC deployment");
-		},
-	});
-
-	useEffect(() => {
-		if (data?.data) {
-			const deployment = data.data;
-			setFormData({
-				exact_venue: deployment.exact_venue,
-				barangay: deployment.barangay,
-				city_municipality: deployment.city_municipality,
-				province: deployment.province,
-				region: deployment.region,
-				district: deployment.district,
-				deployment_month: deployment.deployment_month,
-				deployment_year: deployment.deployment_year,
-				exact_date: deployment.exact_date,
-				event_tagging: deployment.event_tagging,
-				has_socials: deployment.has_socials,
-				has_sortie: deployment.has_sortie,
-				asc_attended: deployment.asc_attended,
-				llc_attended: deployment.llc_attended,
-				psc_attended: deployment.psc_attended,
-				pol_activities: deployment.pol_activities || [],
-				sector: deployment.sector,
-				remarks: deployment.remarks,
-			});
-		}
-	}, [data]);
-
-	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
-		updateMutation.mutate(formData);
-	};
-
-	const handleAddPolActivity = () => {
-		if (polActivityInput.trim()) {
-			setFormData({
-				...formData,
-				pol_activities: [...(formData.pol_activities || []), polActivityInput.trim()],
-			});
-			setPolActivityInput("");
-		}
-	};
-
-	const handleRemovePolActivity = (index: number) => {
-		setFormData({
-			...formData,
-			pol_activities: formData.pol_activities?.filter((_, i) => i !== index) || [],
-		});
-	};
 
 	if (isNaN(id)) {
 		return (
@@ -135,6 +60,79 @@ export default function EditWAscDeploymentPage() {
 			</AuthenticatedLayout>
 		);
 	}
+
+	return <EditFormContent id={id} deployment={data.data} queryClient={queryClient} router={router} />;
+}
+
+function EditFormContent({
+	id,
+	deployment,
+	queryClient,
+	router,
+}: {
+	id: number;
+	deployment: WAscDeployment;
+	queryClient: QueryClient;
+	router: AppRouterInstance;
+}) {
+	// Initialize form data directly from deployment prop
+	const [formData, setFormData] = useState<UpdateWAscDeploymentPayload>(() => ({
+		exact_venue: deployment.exact_venue,
+		barangay: deployment.barangay ?? undefined,
+		city_municipality: deployment.city_municipality ?? undefined,
+		province: deployment.province ?? undefined,
+		region: deployment.region ?? undefined,
+		district: deployment.district ?? undefined,
+		deployment_month: deployment.deployment_month,
+		deployment_year: deployment.deployment_year,
+		exact_date: deployment.exact_date,
+		event_tagging: deployment.event_tagging ?? undefined,
+		has_socials: deployment.has_socials,
+		has_sortie: deployment.has_sortie,
+		asc_attended: deployment.asc_attended,
+		llc_attended: deployment.llc_attended,
+		psc_attended: deployment.psc_attended,
+		pol_activities: deployment.pol_activities ?? [],
+		sector: deployment.sector ?? undefined,
+		remarks: deployment.remarks ?? undefined,
+	}));
+
+	const [polActivityInput, setPolActivityInput] = useState("");
+
+	const updateMutation = useMutation({
+		mutationFn: (payload: UpdateWAscDeploymentPayload) => WAscDeploymentsApi.update(id, payload),
+		onSuccess: () => {
+			toast.success("W ASC Deployment updated successfully");
+			queryClient.invalidateQueries({ queryKey: ["w-asc-deployment", id] });
+			queryClient.invalidateQueries({ queryKey: ["w-asc-deployments"] });
+			router.push(`/w-asc-deployments/${id}`);
+		},
+		onError: () => {
+			toast.error("Failed to update W ASC deployment");
+		},
+	});
+
+	const handleSubmit = async (e: React.FormEvent) => {
+		e.preventDefault();
+		updateMutation.mutate(formData);
+	};
+
+	const handleAddPolActivity = () => {
+		if (polActivityInput.trim()) {
+			setFormData({
+				...formData,
+				pol_activities: [...(formData.pol_activities || []), polActivityInput.trim()],
+			});
+			setPolActivityInput("");
+		}
+	};
+
+	const handleRemovePolActivity = (index: number) => {
+		setFormData({
+			...formData,
+			pol_activities: formData.pol_activities?.filter((_, i) => i !== index) || [],
+		});
+	};
 
 	return (
 		<AuthenticatedLayout>
@@ -245,8 +243,8 @@ export default function EditWAscDeploymentPage() {
 									<div className='space-y-2'>
 										<Label htmlFor='deployment_month'>Month *</Label>
 										<Select
-											value={formData.deployment_month?.toString()}
-											onValueChange={(value) => setFormData({ ...formData, deployment_month: parseInt(value) })}>
+											value={formData.deployment_month?.toString() ?? ""}
+											onValueChange={(value) => value && setFormData({ ...formData, deployment_month: parseInt(value, 10) })}>
 											<SelectTrigger>
 												<SelectValue />
 											</SelectTrigger>

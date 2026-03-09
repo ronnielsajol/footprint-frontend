@@ -4,9 +4,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
 import { AuthenticatedLayout } from "@/components/authenticated-layout";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Edit, Trash2, Loader2, Calendar, MapPin, CheckCircle, XCircle } from "lucide-react";
+import { ArrowLeft, Edit, Trash2, Loader2, Calendar, CheckCircle, XCircle } from "lucide-react";
 import Link from "next/link";
 import { WAscDeploymentsApi } from "@/lib/api/w-asc-deployments";
 import { toast } from "sonner";
@@ -103,11 +103,9 @@ export default function WAscDeploymentDetailPage() {
 							</Button>
 						</Link>
 						<AlertDialog>
-							<AlertDialogTrigger asChild>
-								<Button variant='destructive'>
-									<Trash2 className='mr-2 h-4 w-4' />
-									Delete
-								</Button>
+							<AlertDialogTrigger className='bg-destructive text-destructive-foreground'>
+								<Trash2 className='mr-2 h-4 w-4' />
+								Delete
 							</AlertDialogTrigger>
 							<AlertDialogContent>
 								<AlertDialogHeader>
