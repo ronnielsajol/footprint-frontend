@@ -39,10 +39,8 @@ export function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
 				{/* Mobile Header */}
 				<div className='sticky top-0 z-10 flex items-center gap-2 border-b bg-background p-3 md:hidden'>
 					<Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-						<SheetTrigger>
-							<Button variant='ghost' size='icon'>
-								<Menu className='h-5 w-5' />
-							</Button>
+						<SheetTrigger className='rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-muted'>
+							<Menu className='h-5 w-5' />
 						</SheetTrigger>
 						<SheetContent side='left' className='w-64 p-0'>
 							<AppSidebar mobile onNavigate={() => setMobileMenuOpen(false)} />

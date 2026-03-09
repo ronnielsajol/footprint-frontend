@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, QueryClient } from "@tanstack/react-query";
 import { AuthenticatedLayout } from "@/components/authenticated-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,8 +13,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { PolDeploymentsApi } from "@/lib/api/pol-deployments";
-import { UpdatePolDeploymentPayload } from "@/types";
+import { polDeploymentsApi } from "@/lib/api/pol-deployments";
+import { UpdatePolDeploymentPayload, SourceType, PolDeployment } from "@/types";
+import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 
 export default function EditPolDeploymentPage() {
 	const params = useParams();
@@ -22,68 +23,13 @@ export default function EditPolDeploymentPage() {
 	const queryClient = useQueryClient();
 	const id = parseInt(params.id as string);
 
-	const [formData, setFormData] = useState<UpdatePolDeploymentPayload>({
-		event_name: "",
-		exact_venue: "",
-		deployment_month: new Date().getMonth() + 1,
-		deployment_year: new Date().getFullYear(),
-	});
-
 	const { data, isLoading, error } = useQuery({
 		queryKey: ["pol-deployment", id],
-		queryFn: () => PolDeploymentsApi.getById(id),
+		queryFn: () => polDeploymentsApi.getById(id),
 		enabled: !isNaN(id),
 	});
 
-	const updateMutation = useMutation({
-		mutationFn: (payload: UpdatePolDeploymentPayload) => PolDeploymentsApi.update(id, payload),
-		onSuccess: () => {
-			toast.success("Deployment updated successfully");
-			queryClient.invalidateQueries({ queryKey: ["pol-deployment", id] });
-			queryClient.invalidateQueries({ queryKey: ["pol-deployments"] });
-			router.push(`/pol-deployments/${id}`);
-		},
-		onError: () => {
-			toast.error("Failed to update deployment");
-		},
-	});
-
-	useEffect(() => {
-		if (data?.data) {
-			const deployment = data.data;
-			setFormData({
-				event_name: deployment.event_name,
-				exact_venue: deployment.venue,
-				lgu: deployment.lgu,
-				barangay: deployment.barangay,
-				region: deployment.region,
-				district: deployment.district,
-				province: deployment.province,
-				deployment_month: new Date(deployment.date_start).getMonth() + 1,
-				deployment_year: new Date(deployment.date_start).getFullYear(),
-				turnover_date: deployment.date_end ? new Date(deployment.date_end).toISOString().split("T")[0] : undefined,
-				pol_officer: deployment.assigned_to,
-				category: undefined,
-				asc_type: undefined,
-				llc: undefined,
-				psc: undefined,
-				proponent: undefined,
-				sector_recipient: undefined,
-				count: undefined,
-				unit: undefined,
-				amount: deployment.donation_amount,
-				source: deployment.source,
-				donation_summary: deployment.donation_description,
-				remarks: deployment.remarks,
-			});
-		}
-	}, [data]);
-
-	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
-		updateMutation.mutate(formData);
-	};
-
+	// Create form data component that renders after data loads
 	if (isNaN(id)) {
 		return (
 			<AuthenticatedLayout>
@@ -114,6 +60,65 @@ export default function EditPolDeploymentPage() {
 			</AuthenticatedLayout>
 		);
 	}
+
+	return <EditFormContent id={id} deployment={data.data} queryClient={queryClient} router={router} />;
+}
+
+function EditFormContent({
+	id,
+	deployment,
+	queryClient,
+	router,
+}: {
+	id: number;
+	deployment: PolDeployment;
+	queryClient: QueryClient;
+	router: AppRouterInstance;
+}) {
+	// Initialize form data directly from deployment prop
+	const [formData, setFormData] = useState<UpdatePolDeploymentPayload>(() => ({
+		event_name: deployment.event_name,
+		exact_venue: deployment.exact_venue,
+		lgu: deployment.lgu ?? undefined,
+		barangay: deployment.barangay ?? undefined,
+		region: deployment.region ?? undefined,
+		district: deployment.district ?? undefined,
+		province: deployment.province ?? undefined,
+		deployment_month: deployment.deployment_month,
+		deployment_year: deployment.deployment_year,
+		turnover_date: deployment.turnover_date ?? undefined,
+		pol_officer: deployment.pol_officer ?? undefined,
+		category: deployment.category ?? undefined,
+		asc_type: deployment.asc_type ?? undefined,
+		llc: deployment.llc ?? undefined,
+		psc: deployment.psc ?? undefined,
+		proponent: deployment.proponent ?? undefined,
+		sector_recipient: deployment.sector_recipient ?? undefined,
+		count: deployment.count ?? undefined,
+		unit: deployment.unit ?? undefined,
+		amount: deployment.amount ?? undefined,
+		source: deployment.source ?? undefined,
+		donation_summary: deployment.donation_summary ?? undefined,
+		remarks: deployment.remarks ?? undefined,
+	}));
+
+	const updateMutation = useMutation({
+		mutationFn: (payload: UpdatePolDeploymentPayload) => polDeploymentsApi.update(id, payload),
+		onSuccess: () => {
+			toast.success("Deployment updated successfully");
+			queryClient.invalidateQueries({ queryKey: ["pol-deployment", id] });
+			queryClient.invalidateQueries({ queryKey: ["pol-deployments"] });
+			router.push(`/pol-deployments/${id}`);
+		},
+		onError: () => {
+			toast.error("Failed to update deployment");
+		},
+	});
+
+	const handleSubmit = async (e: React.FormEvent) => {
+		e.preventDefault();
+		updateMutation.mutate(formData);
+	};
 
 	return (
 		<AuthenticatedLayout>
@@ -213,8 +218,8 @@ export default function EditPolDeploymentPage() {
 									<div className='space-y-2'>
 										<Label htmlFor='deployment_month'>Month *</Label>
 										<Select
-											value={formData.deployment_month.toString()}
-											onValueChange={(value) => setFormData({ ...formData, deployment_month: parseInt(value) })}>
+											value={formData.deployment_month?.toString() ?? ""}
+											onValueChange={(value) => value && setFormData({ ...formData, deployment_month: parseInt(value, 10) })}>
 											<SelectTrigger>
 												<SelectValue />
 											</SelectTrigger>
@@ -343,7 +348,9 @@ export default function EditPolDeploymentPage() {
 									</div>
 									<div className='space-y-2'>
 										<Label htmlFor='source'>Source</Label>
-										<Select value={formData.source || ""} onValueChange={(value) => setFormData({ ...formData, source: value as any })}>
+										<Select
+											value={formData.source || ""}
+											onValueChange={(value) => setFormData({ ...formData, source: value as SourceType })}>
 											<SelectTrigger>
 												<SelectValue placeholder='Select source' />
 											</SelectTrigger>

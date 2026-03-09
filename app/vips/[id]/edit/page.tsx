@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, QueryClient } from "@tanstack/react-query";
 import { AuthenticatedLayout } from "@/components/authenticated-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,8 +11,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { VipsApi } from "@/lib/api/vips";
-import { UpdateVipPayload } from "@/types";
+import { vipsApi } from "@/lib/api/vips";
+import { UpdateVipPayload, Vip } from "@/types";
+import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 
 export default function EditVipPage() {
 	const params = useParams();
@@ -20,50 +21,11 @@ export default function EditVipPage() {
 	const queryClient = useQueryClient();
 	const id = parseInt(params.id as string);
 
-	const [formData, setFormData] = useState<UpdateVipPayload>({
-		first_name: "",
-		last_name: "",
-		contact_number: "",
-		email: "",
-		birth_date: "",
-	});
-
 	const { data, isLoading, error } = useQuery({
 		queryKey: ["vip", id],
-		queryFn: () => VipsApi.getById(id),
+		queryFn: () => vipsApi.getById(id),
 		enabled: !isNaN(id),
 	});
-
-	const updateMutation = useMutation({
-		mutationFn: (payload: UpdateVipPayload) => VipsApi.update(id, payload),
-		onSuccess: () => {
-			toast.success("VIP updated successfully");
-			queryClient.invalidateQueries({ queryKey: ["vip", id] });
-			queryClient.invalidateQueries({ queryKey: ["vips"] });
-			router.push(`/vips/${id}`);
-		},
-		onError: () => {
-			toast.error("Failed to update VIP");
-		},
-	});
-
-	useEffect(() => {
-		if (data?.data) {
-			const vip = data.data;
-			setFormData({
-				first_name: vip.first_name,
-				last_name: vip.last_name,
-				contact_number: vip.contact_number,
-				email: vip.email || "",
-				birth_date: vip.birth_date,
-			});
-		}
-	}, [data]);
-
-	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
-		updateMutation.mutate(formData);
-	};
 
 	if (isNaN(id)) {
 		return (
@@ -95,6 +57,47 @@ export default function EditVipPage() {
 			</AuthenticatedLayout>
 		);
 	}
+
+	return <EditFormContent id={id} vip={data.data} queryClient={queryClient} router={router} />;
+}
+
+function EditFormContent({
+	id,
+	vip,
+	queryClient,
+	router,
+}: {
+	id: number;
+	vip: Vip;
+	queryClient: QueryClient;
+	router: AppRouterInstance;
+}) {
+	// Initialize form data directly from vip prop
+	const [formData, setFormData] = useState<UpdateVipPayload>(() => ({
+		first_name: vip.first_name,
+		last_name: vip.last_name,
+		contact_number: vip.contact_number,
+		email: vip.email || "",
+		birth_date: vip.birth_date,
+	}));
+
+	const updateMutation = useMutation({
+		mutationFn: (payload: UpdateVipPayload) => vipsApi.update(id, payload),
+		onSuccess: () => {
+			toast.success("VIP updated successfully");
+			queryClient.invalidateQueries({ queryKey: ["vip", id] });
+			queryClient.invalidateQueries({ queryKey: ["vips"] });
+			router.push(`/vips/${id}`);
+		},
+		onError: () => {
+			toast.error("Failed to update VIP");
+		},
+	});
+
+	const handleSubmit = async (e: React.FormEvent) => {
+		e.preventDefault();
+		updateMutation.mutate(formData);
+	};
 
 	return (
 		<AuthenticatedLayout>
