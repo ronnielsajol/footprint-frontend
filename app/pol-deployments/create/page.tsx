@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft, Save } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -18,6 +19,7 @@ import { CreatePolDeploymentPayload, SourceType } from "@/types";
 export default function CreatePolDeploymentPage() {
 	const router = useRouter();
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [showDonation, setShowDonation] = useState(false);
 	const [formData, setFormData] = useState<CreatePolDeploymentPayload>({
 		event_name: "",
 		exact_venue: "",
@@ -240,69 +242,95 @@ export default function CreatePolDeploymentPage() {
 
 							{/* Donation Details */}
 							<div className='space-y-4'>
-								<h3 className='text-lg font-semibold'>Donation Details</h3>
-								<div className='grid gap-4 md:grid-cols-2'>
-									<div className='space-y-2'>
-										<Label htmlFor='sector_recipient'>Sector Recipient</Label>
-										<Input
-											id='sector_recipient'
-											value={formData.sector_recipient || ""}
-											onChange={(e) => setFormData({ ...formData, sector_recipient: e.target.value })}
-										/>
-									</div>
-									<div className='space-y-2'>
-										<Label htmlFor='count'>Count</Label>
-										<Input
-											id='count'
-											type='number'
-											min='0'
-											value={formData.count || ""}
-											onChange={(e) => setFormData({ ...formData, count: e.target.value ? parseInt(e.target.value) : undefined })}
-										/>
-									</div>
-									<div className='space-y-2'>
-										<Label htmlFor='unit'>Unit</Label>
-										<Input id='unit' value={formData.unit || ""} onChange={(e) => setFormData({ ...formData, unit: e.target.value })} />
-									</div>
-									<div className='space-y-2'>
-										<Label htmlFor='amount'>Amount</Label>
-										<Input
-											id='amount'
-											type='number'
-											min='0'
-											step='0.01'
-											value={formData.amount || ""}
-											onChange={(e) => setFormData({ ...formData, amount: e.target.value ? parseFloat(e.target.value) : undefined })}
-										/>
-									</div>
-									<div className='space-y-2'>
-										<Label htmlFor='source'>Source</Label>
-										<Select
-											value={formData.source || ""}
-											onValueChange={(value) => setFormData({ ...formData, source: value as SourceType })}>
-											<SelectTrigger>
-												<SelectValue placeholder='Select source' />
-											</SelectTrigger>
-											<SelectContent>
-												<SelectItem value='TESDA'>TESDA</SelectItem>
-												<SelectItem value='DSWD-AICS'>DSWD-AICS</SelectItem>
-												<SelectItem value='DOLE-DILP'>DOLE-DILP</SelectItem>
-												<SelectItem value='DOLE-TUPAD'>DOLE-TUPAD</SelectItem>
-												<SelectItem value='DOH-MAIFIP'>DOH-MAIFIP</SelectItem>
-												<SelectItem value='Private'>Private</SelectItem>
-											</SelectContent>
-										</Select>
-									</div>
-								</div>
-								<div className='space-y-2'>
-									<Label htmlFor='donation_summary'>Donation Summary</Label>
-									<Textarea
-										id='donation_summary'
-										value={formData.donation_summary || ""}
-										onChange={(e) => setFormData({ ...formData, donation_summary: e.target.value })}
-										rows={3}
+								<div className='flex items-center gap-3'>
+									<Checkbox
+										id='toggle_donation'
+										checked={showDonation}
+										onCheckedChange={(checked) => {
+											setShowDonation(!!checked);
+											if (!checked) {
+												setFormData({
+													...formData,
+													sector_recipient: undefined,
+													count: undefined,
+													unit: undefined,
+													amount: undefined,
+													source: undefined,
+													donation_summary: undefined,
+												});
+											}
+										}}
 									/>
+									<Label htmlFor='toggle_donation' className='text-lg font-semibold cursor-pointer'>
+										Donation Details
+									</Label>
 								</div>
+								{showDonation && (
+									<>
+										<div className='grid gap-4 md:grid-cols-2'>
+											<div className='space-y-2'>
+												<Label htmlFor='sector_recipient'>Sector Recipient</Label>
+												<Input
+													id='sector_recipient'
+													value={formData.sector_recipient || ""}
+													onChange={(e) => setFormData({ ...formData, sector_recipient: e.target.value })}
+												/>
+											</div>
+											<div className='space-y-2'>
+												<Label htmlFor='count'>Count</Label>
+												<Input
+													id='count'
+													type='number'
+													min='0'
+													value={formData.count || ""}
+													onChange={(e) => setFormData({ ...formData, count: e.target.value ? parseInt(e.target.value) : undefined })}
+												/>
+											</div>
+											<div className='space-y-2'>
+												<Label htmlFor='unit'>Unit</Label>
+												<Input id='unit' value={formData.unit || ""} onChange={(e) => setFormData({ ...formData, unit: e.target.value })} />
+											</div>
+											<div className='space-y-2'>
+												<Label htmlFor='amount'>Amount</Label>
+												<Input
+													id='amount'
+													type='number'
+													min='0'
+													step='0.01'
+													value={formData.amount || ""}
+													onChange={(e) => setFormData({ ...formData, amount: e.target.value ? parseFloat(e.target.value) : undefined })}
+												/>
+											</div>
+											<div className='space-y-2'>
+												<Label htmlFor='source'>Source</Label>
+												<Select
+													value={formData.source || ""}
+													onValueChange={(value) => setFormData({ ...formData, source: value as SourceType })}>
+													<SelectTrigger>
+														<SelectValue placeholder='Select source' />
+													</SelectTrigger>
+													<SelectContent>
+														<SelectItem value='TESDA'>TESDA</SelectItem>
+														<SelectItem value='DSWD-AICS'>DSWD-AICS</SelectItem>
+														<SelectItem value='DOLE-DILP'>DOLE-DILP</SelectItem>
+														<SelectItem value='DOLE-TUPAD'>DOLE-TUPAD</SelectItem>
+														<SelectItem value='DOH-MAIFIP'>DOH-MAIFIP</SelectItem>
+														<SelectItem value='Private'>Private</SelectItem>
+													</SelectContent>
+												</Select>
+											</div>
+										</div>
+										<div className='space-y-2'>
+											<Label htmlFor='donation_summary'>Donation Summary</Label>
+											<Textarea
+												id='donation_summary'
+												value={formData.donation_summary || ""}
+												onChange={(e) => setFormData({ ...formData, donation_summary: e.target.value })}
+												rows={3}
+											/>
+										</div>
+									</>
+								)}
 							</div>
 
 							{/* Remarks */}

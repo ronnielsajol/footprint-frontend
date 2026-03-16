@@ -1,20 +1,49 @@
 "use client";
 
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { AuthenticatedLayout } from "@/components/authenticated-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, Filter } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Search, Filter, Eye, Edit, Loader2, AlertCircle, MapPin, Calendar } from "lucide-react";
 import Link from "next/link";
+import { polDeploymentsApi } from "@/lib/api/pol-deployments";
 import { PolDeploymentFilters, SourceType } from "@/types";
 
+const MONTH_NAMES = [
+	"January",
+	"February",
+	"March",
+	"April",
+	"May",
+	"June",
+	"July",
+	"August",
+	"September",
+	"October",
+	"November",
+	"December",
+];
+
 export default function PolDeploymentsPage() {
+	const router = useRouter();
 	const [filters, setFilters] = useState<PolDeploymentFilters>({
 		search: "",
 		year: new Date().getFullYear(),
 		per_page: 20,
+	});
+
+	const { data, isLoading, error } = useQuery({
+		queryKey: ["pol-deployments", filters],
+		queryFn: async () => {
+			const response = await polDeploymentsApi.getAll(filters);
+			return response.data;
+		},
 	});
 
 	return (
@@ -134,13 +163,158 @@ export default function PolDeploymentsPage() {
 				<Card>
 					<CardHeader>
 						<CardTitle>Deployment Records</CardTitle>
-						<CardDescription>View and manage all POL deployments</CardDescription>
+						<CardDescription>
+							{data?.meta
+								? `${data.meta.total} total record${data.meta.total !== 1 ? "s" : ""}`
+								: "View and manage all POL deployments"}
+						</CardDescription>
 					</CardHeader>
 					<CardContent>
-						<div className='text-center py-8 text-muted-foreground'>
-							<p>Deployment list will be loaded here</p>
-							<p className='text-sm mt-2'>Connect to API to display records</p>
-						</div>
+						{isLoading && (
+							<div className='flex items-center justify-center py-8'>
+								<Loader2 className='h-6 w-6 animate-spin text-muted-foreground' />
+								<span className='ml-2 text-muted-foreground'>Loading deployments...</span>
+							</div>
+						)}
+
+						{error && (
+							<div className='flex items-center justify-center py-8 text-destructive'>
+								<AlertCircle className='h-5 w-5 mr-2' />
+								<span>Failed to load deployments</span>
+							</div>
+						)}
+
+						{!isLoading && !error && data?.data?.length === 0 && (
+							<div className='text-center py-8 text-muted-foreground'>
+								<p>No deployments found</p>
+								<Link href='/pol-deployments/create'>
+									<Button variant='outline' size='sm' className='mt-4'>
+										<Plus className='h-4 w-4 mr-2' />
+										Create First Deployment
+									</Button>
+								</Link>
+							</div>
+						)}
+
+						{!isLoading && !error && data && data.data && data.data.length > 0 && (
+							<div className='space-y-4'>
+								{/* Mobile: Card View */}
+								<div className='block md:hidden space-y-3'>
+									{data.data.map((deployment) => (
+										<Card key={deployment.id} className='p-4'>
+											<div className='space-y-3'>
+												<div className='flex items-start justify-between gap-3'>
+													<div className='space-y-1 flex-1 min-w-0'>
+														<span className='font-semibold truncate block'>{deployment.event_name}</span>
+														<div className='flex items-center gap-2 text-sm text-muted-foreground'>
+															<MapPin className='h-3 w-3 shrink-0' />
+															<span className='truncate'>
+																{deployment.exact_venue}
+																{deployment.lgu ? `, ${deployment.lgu}` : ""}
+															</span>
+														</div>
+														<div className='flex items-center gap-2 text-sm text-muted-foreground'>
+															<Calendar className='h-3 w-3 shrink-0' />
+															<span>
+																{MONTH_NAMES[deployment.deployment_month - 1]} {deployment.deployment_year}
+															</span>
+														</div>
+													</div>
+													{deployment.source && (
+														<Badge variant='outline' className='shrink-0'>
+															{deployment.source}
+														</Badge>
+													)}
+												</div>
+												<div className='flex gap-2 pt-2 border-t'>
+													<Button size='sm' variant='outline' className='flex-1' onClick={() => router.push(`/pol-deployments/${deployment.id}`)}>
+														<Eye className='mr-2 h-4 w-4' />
+														View
+													</Button>
+													<Button
+														size='sm'
+														variant='outline'
+														className='flex-1'
+														onClick={() => router.push(`/pol-deployments/${deployment.id}/edit`)}>
+														<Edit className='mr-2 h-4 w-4' />
+														Edit
+													</Button>
+												</div>
+											</div>
+										</Card>
+									))}
+								</div>
+
+								{/* Desktop: Table View */}
+								<div className='hidden md:block overflow-x-auto'>
+									<Table>
+										<TableHeader>
+											<TableRow>
+												<TableHead>ID</TableHead>
+												<TableHead>Event Name</TableHead>
+												<TableHead>Venue / LGU</TableHead>
+												<TableHead>Date</TableHead>
+												<TableHead>POL Officer</TableHead>
+												<TableHead>Source</TableHead>
+												<TableHead className='text-right'>Actions</TableHead>
+											</TableRow>
+										</TableHeader>
+										<TableBody>
+											{data.data.map((deployment) => (
+												<TableRow key={deployment.id}>
+													<TableCell className='font-medium'>{deployment.id}</TableCell>
+													<TableCell className='max-w-50 truncate font-medium'>{deployment.event_name}</TableCell>
+													<TableCell>
+														<div className='flex items-center gap-2'>
+															<MapPin className='h-4 w-4 text-muted-foreground shrink-0' />
+															<span className='max-w-45 truncate'>
+																{deployment.exact_venue}
+																{deployment.lgu ? `, ${deployment.lgu}` : ""}
+															</span>
+														</div>
+													</TableCell>
+													<TableCell>
+														<div className='flex items-center gap-2'>
+															<Calendar className='h-4 w-4 text-muted-foreground shrink-0' />
+															<span>
+																{MONTH_NAMES[deployment.deployment_month - 1]} {deployment.deployment_year}
+															</span>
+														</div>
+													</TableCell>
+													<TableCell>{deployment.pol_officer ?? <span className='text-muted-foreground'>N/A</span>}</TableCell>
+													<TableCell>
+														{deployment.source ? (
+															<Badge variant='outline'>{deployment.source}</Badge>
+														) : (
+															<span className='text-muted-foreground'>N/A</span>
+														)}
+													</TableCell>
+													<TableCell className='text-right'>
+														<div className='flex gap-2 justify-end'>
+															<Button size='sm' variant='outline' onClick={() => router.push(`/pol-deployments/${deployment.id}`)}>
+																<Eye className='mr-2 h-4 w-4' />
+																View
+															</Button>
+															<Button size='sm' variant='outline' onClick={() => router.push(`/pol-deployments/${deployment.id}/edit`)}>
+																<Edit className='mr-2 h-4 w-4' />
+																Edit
+															</Button>
+														</div>
+													</TableCell>
+												</TableRow>
+											))}
+										</TableBody>
+									</Table>
+								</div>
+
+								{/* Pagination info */}
+								{data.meta && (
+									<p className='text-sm text-muted-foreground text-right'>
+										Showing {data.meta.from ?? 0}–{data.meta.to ?? 0} of {data.meta.total}
+									</p>
+								)}
+							</div>
+						)}
 					</CardContent>
 				</Card>
 			</div>
